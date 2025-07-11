@@ -1,0 +1,16 @@
+[project]
+name = "jupyter-ai-demos"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "agno>=1.7.1",
+    "claude-code-sdk>=0.0.14",
+    "jupyter-ai>=3.0.0b4",
+    "jupyter-server-documents>=0.1.0a4",
+    "jupyterlab-chat>=0.16.0",
+    "langchain-openai>=0.3.27",
+    "openai>=1.93.0",
+]
+
+[tool.uv]
+prerelease = "allow"
