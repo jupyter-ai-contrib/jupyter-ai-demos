@@ -26,10 +26,11 @@ https://github.com/jupyterlab/jupyter-chat
 https://github.com/jupyterlab/jupyter-ai
 
 - In Jupyter AI v3, everything is an AI persona
-- Simply @ mention an AI person to collaborate with it
+- Simply @ mention an AI persona to collaborate with it
 - Jupyternaut is the default, and the last mentioned persona is sticky for lightweight threads
 - Each chat file will find the nearest `.jupyter` directory and use it for configuration
 - Personas work with file attachments
+- Personas can call each other  (I think we have a bug in this)
 
 ## Personas as Python packages
 
@@ -57,18 +58,19 @@ https://github.com/jupyter-ai-contrib/jupyter-ai-tools
 - Scope is similar to what Claude Code has
 - These tools will edit files using the CRDTs for a full collaborative UX
 - Still need to work on tool approval UX
+- Still work needed to finish tool implementation
 
 ## MCP
 
 - Jupyter AI v3 will include built in support for MCP servers
 - `.jupyter/mcp/config.json` for MCP server configuration, follows the standard format
-- Jupyter AI will automatically start MCP servers and give clients to AI personas
+- Jupyter AI will automatically start MCP servers and give clients to AI personas (not completed)
 - Needed to avoid MCP servers begin duplicated across different personas and chats
 
 ## Jupyternaut
 
 - Jupyternaut will continue to be the default AI persona for Jupyter AI
 - The default AI persona can also be configured in a config file
-- Jupyternaut will ship with the default tools
+- Jupyternaut will ship with the default tools (not completed)
 - Goal is to be on par with Claude Code, et al. but with a Jupyter flavor
 
