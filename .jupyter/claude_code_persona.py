@@ -28,6 +28,13 @@ TOOL_PARAM_MAPPING = {
     'WebSearch': 'query',
 }
 
+PROMPT_TEMPLATE = """
+{{body}}
+
+The user has selected the following files as attachements:
+
+
+"""
 
 def input_dict_to_str(d: Dict[str, Any]) -> str:
     """Convert input dictionary to string representation, omitting specified args."""
@@ -38,11 +45,19 @@ def input_dict_to_str(d: Dict[str, Any]) -> str:
     return ', '.join(args)
 
 
-def tool_to_str(block: ToolUseBlock) -> str:
+def tool_to_str(block: ToolUseBlock, persona_instance=None) -> str:
     """Convert a ToolUseBlock to its string representation."""
     results = []
     
     if block.name == 'TodoWrite':
+        block_id = block.id if hasattr(block, 'id') else str(hash(str(block.input)))
+        
+        if persona_instance and block_id in persona_instance._printed_todowrite_blocks:
+            return ""
+        
+        if persona_instance:
+            persona_instance._printed_todowrite_blocks.add(block_id)
+        
         todos = block.input.get('todos', [])
         results.append('TodoWrite()')
         for todo in todos:
@@ -59,14 +74,16 @@ def tool_to_str(block: ToolUseBlock) -> str:
     return '\n'.join(results)
 
 
-def claude_message_to_str(message) -> Optional[str]:
+def claude_message_to_str(message, persona_instance=None) -> Optional[str]:
     """Convert a Claude Message to a string by extracting text content."""
     text_parts = []
     for block in message.content:
         if isinstance(block, TextBlock):
             text_parts.append(block.text)
         elif isinstance(block, ToolUseBlock):
-            text_parts.append(tool_to_str(block))
+            tool_str = tool_to_str(block, persona_instance)
+            if tool_str:
+                text_parts.append(tool_str)
         else:
             text_parts.append(str(block))
     return '\n'.join(text_parts) if text_parts else None
@@ -74,6 +91,10 @@ def claude_message_to_str(message) -> Optional[str]:
 
 class ClaudeCodePersona(BasePersona):
     """Claude Code persona for Jupyter AI integration."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._printed_todowrite_blocks = set()
 
     @property
     def defaults(self) -> PersonaDefaults:
@@ -90,19 +111,39 @@ class ClaudeCodePersona(BasePersona):
         async for response_message in message_iterator:
             self.log.info(str(response_message))
             if isinstance(response_message, AssistantMessage):
-                msg_str = claude_message_to_str(response_message)
+                msg_str = claude_message_to_str(response_message, self)
                 if msg_str is not None:
                     yield msg_str + '\n\n'
-    
+
+    def _generate_prompt(self, message: Message) -> str:
+        attachment_ids = message.attachments
+        if attachment_ids is None:
+            return message.body
+        attachments = self.ychat.get_attachments()
+        msg_attachments = (attachments[aid] for aid in attachment_ids)
+        prompt = f"{message.body}\n\n"
+        prompt += f"The user has attached the following files and may be referring to them in the above prompt:\n\n"
+        for a in msg_attachments:
+            if a['type'] == 'file':
+                prompt += f"file_path={a['value']}"
+            elif a['type'] == 'notebook':
+                cells = list(c['id'] for c in a['cells'])
+                # Claude Code's notebook tools only understand a single cell_id
+                prompt += f"notebook_path={a['value']} cell_id={cells[0]}"
+        self.log.info(prompt)
+        return prompt
+
     async def process_message(self, message: Message) -> None:
         """Process incoming message and stream Claude Code response."""
+        self._printed_todowrite_blocks.clear()
         async_gen = None
+        prompt = self._generate_prompt(message)
         try:
             async_gen = query(
-                prompt=message.body,
+                prompt=prompt,
                 options=ClaudeCodeOptions(
                     max_turns=20,
-                    cwd=self.get_chat_dir(),
+                    cwd=self.get_workspace_dir(),
                     permission_mode='bypassPermissions'
                 )
             )

@@ -9,6 +9,7 @@ from agno.memory.v2.db.sqlite import SqliteMemoryDb
 
 from _agno_persona import _AgnoPersona
 
+
 class FernandoPersona(_AgnoPersona):
 
 
@@ -23,7 +24,7 @@ class FernandoPersona(_AgnoPersona):
                     add_instructions=True
                 )
             ],
-            description="You are Fernando Pérez. You created IPython and are a co-creator of Project Jupyter. You are from Colombia originally. You have a Ph.D. in Physics of CU Boulder and are a professor in the UC Berkeley Stats department.",
+            description="You are Fernando Pérez. You created IPython and are a co-creator of Project Jupyter. You are from Colombia originally. You have a Ph.D. in Physics of CU Boulder and are a professor in the UC Berkeley Stats department. Always make a joke in english!",
             instructions=[
                 "Reply as Fernando Perez would.",
                 "Keep your replies as short as possible and human sounding."
