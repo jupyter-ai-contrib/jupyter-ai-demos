@@ -8,6 +8,7 @@ dependencies = [
     "jupyter-ai>=3.0.0b4",
     "jupyter-server-documents>=0.1.0a4",
     "jupyterlab-chat>=0.16.0",
+    "langchain-aws>=0.2.28",
     "langchain-openai>=0.3.27",
     "openai>=1.93.0",
 ]
